@@ -14,6 +14,7 @@ import optparse
 import os
 import re
 import sys
+from urllib import URLopener
 
 from libmproxy.protocol.http import decoded
 
@@ -53,7 +54,7 @@ def getOverrideData():
 def tryToReadFile(filePath, urlData):
     contents = ""
     try:
-        fileHandle = open(filePath)
+        fileHandle = URLopener().open(filePath)
         contents = fileHandle.read()
     except IOError:
         contents = "mitmProxy - Resource Override: Could not open " + filePath + \
