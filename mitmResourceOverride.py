@@ -7,19 +7,39 @@ http://example.com/js/* , src/js/*
 
 View the README to see how override rules work.
 
-Usage: mitmproxy -s mitmResourceOverride.py
+Usage: mitmproxy -s "mitmResourceOverride.py [file1 [file2 [..]]]"
 (this script works best with --anticache)
 '''
-from libmproxy.protocol.http import decoded
+import optparse
+import os
 import re
+import sys
+
+from libmproxy.protocol.http import decoded
 
 
 def getOverrideData():
-    overridesFile = open("overrides.txt")
-    overridesText = overridesFile.read()
+    # find arg begin with mitmResourceOverride.py
+    args = []
+
+    # TODO: find a better way to handle filename
+    #       p.s. __file__ is not working if passed to mitmproxy
+    for arg in sys.argv:
+        if re.findall("mitmResourceOverride.py ", arg):
+            args = re.split(r"(?<!\\) ", arg)[1:]
+            break
+
+    # Duplicated, read overrides.txt from current directory
+    if os.path.exists("overrides.txt"):
+        args.append("overrides.txt")
+
+    overridesText = ""
+    for fn in args:
+        with open(fn) as f:
+            overridesText += f.read() + "\n"
 
     overridesText = overridesText.replace("\r\n", "\n")
-    lines = overridesText.split("\n")
+    lines = re.split(r"\n+", overridesText)
 
     urlData = []
 
@@ -56,15 +76,15 @@ def response(context, flow):
             if urlMatches:
                 filePath = matchReplace(urlData[0], urlData[1], url)
                 newResponseContent = tryToReadFile(filePath, urlData)
-                break;
+                break
 
         if urlMatches:
             flow.response.code = 200
             flow.response.content = newResponseContent
 
 
-
 ### URL Matching stuff below ###
+
 
 def tokenize(myStr):
     ans = re.split(r'(\*+)', myStr)
@@ -161,7 +181,8 @@ def matchReplace(pattern, replacePattern, myStr):
         else:
             freeVarGroup = []
         freeVar = safeShift(freeVarGroup) or starGroup
-        replacePattern = replaceAfter(replacePattern, currentStarGroupIdx, starGroup, freeVar)
+        replacePattern = replaceAfter(replacePattern, currentStarGroupIdx,
+                                      starGroup, freeVar)
         currentStarGroupIdx = replacePattern.find(freeVar) + len(freeVar)
 
     return replacePattern
