@@ -14,9 +14,9 @@ import optparse
 import os
 import re
 import sys
-from urllib import URLopener
+from urllib.request import URLopener
 
-from libmproxy.protocol.http import decoded
+#from libmproxy.protocol.http import decoded
 
 
 def getOverrideData():
@@ -46,7 +46,7 @@ def getOverrideData():
 
     for line in lines:
         if line.find(",") > -1:
-            urlData.append(map(lambda s: s.strip(), line.split(",")))
+            urlData.append(list(map(lambda s: s.strip(), line.split(","))))
 
     return urlData
 
@@ -63,25 +63,25 @@ def tryToReadFile(filePath, urlData):
     return contents
 
 
-def response(context, flow):
+def response(flow):
     overrideData = getOverrideData()
 
-    with decoded(flow.response):  # automatically decode gzipped responses.
-        url = flow.request.scheme + "://" + flow.request.host + flow.request.path
+    #with decoded(flow.response):  # automatically decode gzipped responses.
+    url = flow.request.scheme + "://" + flow.request.host + flow.request.path
 
-        newResponseContent = ""
-        urlMatches = False
+    newResponseContent = ""
+    urlMatches = False
 
-        for urlData in overrideData:
-            urlMatches, freeVars = match(urlData[0], url)
-            if urlMatches:
-                filePath = matchReplace(urlData[0], urlData[1], url)
-                newResponseContent = tryToReadFile(filePath, urlData)
-                break
-
+    for urlData in overrideData:
+        urlMatches, freeVars = match(urlData[0], url)
         if urlMatches:
-            flow.response.code = 200
-            flow.response.content = newResponseContent
+            filePath = matchReplace(urlData[0], urlData[1], url)
+            newResponseContent = tryToReadFile(filePath, urlData)
+            break
+
+    if urlMatches:
+        flow.response.code = 200
+        flow.response.content = newResponseContent
 
 
 ### URL Matching stuff below ###
