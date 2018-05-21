@@ -1,6 +1,6 @@
 # mitmproxy - Resource Override
 
-Forked from [heytric](https://github.com/heyrict/ResourceOverride), who got it from [kylepaulsen](https://github.com/kylepaulsen/ResourceOverride).
+Forked from [heytric](https://github.com/heyrict/mitmproxy-resource-override), who got it from [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override).
 Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD.
 
 # How to use
