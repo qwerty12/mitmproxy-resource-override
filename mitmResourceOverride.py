@@ -62,25 +62,35 @@ def tryToReadFile(filePath, urlData):
 
     return contents
 
-
+def request(flow):
+    overrideData = getOverrideData()
+    url = flow.request.pretty_url
+    newResponseContent = ""
+    
+    urlMatches = False
+    for urlData in overrideData:
+        urlMatches, freeVars = match(urlData[0], url)
+        break;
+    if urlMatches:
+        flow.request.method = "HEAD" #don't download stuff first
+        
 def response(flow):
     overrideData = getOverrideData()
 
     #with decoded(flow.response):  # automatically decode gzipped responses.
-    url = flow.request.scheme + "://" + flow.request.host + flow.request.path
+    url = flow.request.pretty_url
 
     newResponseContent = ""
     urlMatches = False
-
     for urlData in overrideData:
         urlMatches, freeVars = match(urlData[0], url)
+
         if urlMatches:
             filePath = matchReplace(urlData[0], urlData[1], url)
             newResponseContent = tryToReadFile(filePath, urlData)
+            print("Matched " + filePath)
             break
-
     if urlMatches:
-        flow.response.code = 200
         flow.response.content = newResponseContent
 
 
