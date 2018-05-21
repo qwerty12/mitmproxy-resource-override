@@ -1,6 +1,7 @@
 # mitmproxy - Resource Override
 
-A script for the proxy mitmproxy to help you gain full control of any website (through any browser) by redirecting traffic to specific files on your filesystem. This is similar to my [chrome extension](https://chrome.google.com/webstore/detail/resource-override/pkoacgokdfckfpndoffpifphamojphii).
+Forked from [heytric](https://github.com/heyrict/ResourceOverride), who got it from [kylepaulsen](https://github.com/kylepaulsen/ResourceOverride).
+Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD.
 
 # How to use
 1. Install mitmproxy (see the other info section below if you have trouble)
