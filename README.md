@@ -1,7 +1,7 @@
 # mitmproxy - Resource Override
 
 Forked from [heytric](https://github.com/heyrict/mitmproxy-resource-override), who got it from [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override).
-Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD. Moved to RegEx instead of fixing the custom parsing stuff by [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override). Sorry, your solution looks like it took pretty long to write it.
+Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD. Moved to RegEx instead of fixing the custom parsing stuff by [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override).
 
 # How to use
 1. Install mitmproxy (see the other info section below if you have trouble)
@@ -27,11 +27,11 @@ http:\/\/example.com\/.*\.exe , some/evil/virus.exe
 
 A rule is made up of a url, comma, and lastly a file path. See the table below for examples:
 
-| Rule (URL , File Path)                                           | Requested URL                 | File Path That Is Used As Response |
-|------------------------------------------------------------------|-------------------------------|------------------------------------|
-| http:\/\/example.com\/dir\/filename\.exe , some/evil/virus.exe   | Any .exe from example.com     | some/evil/virus.exe                |
-| http:\/\/example.com\/.*\.exe , some/evil/virus.exe              | Any .exe from example.com     | some/evil/virus.exe                |
-| http:\/\/.*\.exe , some/evil/virus.exe                           | Any .exe from anywhere        | some/evil/virus.exe                |
+| Rule (URL , File Path)                                              | Requested URL                 | File Path That Is Used As Response |
+|---------------------------------------------------------------------|-------------------------------|------------------------------------|
+| http:\\/\\/example.com\\/dir\\/filename\\.exe , some/evil/virus.exe | Any .exe from example.com     | some/evil/virus.exe                |
+| http:\\/\\/example.com\\/.*\.exe , some/evil/virus.exe              | Any .exe from example.com     | some/evil/virus.exe                |
+| http:\\/\\/.*\\.exe , some/evil/virus.exe                           | Any .exe from anywhere        | some/evil/virus.exe                |
 
 # Other Info About mitmproxy
 
