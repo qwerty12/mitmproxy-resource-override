@@ -30,7 +30,7 @@ A rule is made up of a url, comma, and lastly a file path. See the table below f
 | Rule (URL , File Path)                                              | Requested URL                 | File Path That Is Used As Response |
 |---------------------------------------------------------------------|-------------------------------|------------------------------------|
 | http:\\/\\/example.com\\/dir\\/filename\\.exe , some/evil/virus.exe | Any .exe from example.com     | some/evil/virus.exe                |
-| http:\\/\\/example.com\\/.*\.exe , some/evil/virus.exe              | Any .exe from example.com     | some/evil/virus.exe                |
+| http:\\/\\/example.com\\/.*\\.exe , some/evil/virus.exe              | Any .exe from example.com     | some/evil/virus.exe                |
 | http:\\/\\/.*\\.exe , some/evil/virus.exe                           | Any .exe from anywhere        | some/evil/virus.exe                |
 
 # Other Info About mitmproxy
