@@ -1,7 +1,7 @@
 # mitmproxy - Resource Override
 
 Forked from [heytric](https://github.com/heyrict/mitmproxy-resource-override), who got it from [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override).
-Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD.
+Added some minor debug output, fixed hostname in url (was IP in transparent mode). Furthermore, all files we are going to replace aren't downloaded from server anymore. (This fixes replacing bigger files, like a 400mb .exe...) Instead, we just request the Header with HTTP HEAD. Moved to RegEx instead of fixing the custom parsing stuff by [kylepaulsen](https://github.com/kylepaulsen/mitmproxy-resource-override). Sorry, your solution looks like it took pretty long to write it.
 
 # How to use
 1. Install mitmproxy (see the other info section below if you have trouble)
@@ -12,32 +12,26 @@ Added some minor debug output, fixed hostname in url (was IP in transparent mode
 
 <!-- Markdown is stupid - need to use a comment to turn off list formatting. -->
 
-    $ mitmproxy -s mitmResourceOverride.py
+    $ mitmproxy -s override.py
     or
-    $ mitmproxy --anticache -s mitmResourceOverride.py
+    $ mitmproxy --anticache -s override.py
 
 
 # overrides.txt
-This is the file where you define your url replace rules. Each rule is on its own line.
+This is the file where you define your url replace rules. Each rule is on its own line. The request part understands RegEx, the local side does not. I replaced the complicated star-syntax with python-build-in regex. Don't forget to escape / and .
 The script will parse this file every time a request is made so you can change it without having to restart mitmproxy. Here is what one replace rule looks like:
 
 ```
-http://example.com/*.js , mySrcFolder/*.js
+http:\/\/example.com\/.*\.exe , some/evil/virus.exe
 ```
 
-A rule is made up of a url, comma, and lastly a file path. The file paths are relative to where you start mitmproxy (and where overrides.txt is). The url and file path can make use of \* (star) globs. The star syntax in the paths is the same as my [chrome extension](https://chrome.google.com/webstore/detail/resource-override/pkoacgokdfckfpndoffpifphamojphii). A star in the url will greedily capture as much text as it can and store it so you can use it again in the file path. You can use consecutive stars ( \*\* , \*\*\* ) to store text under a different "name". See the table below for examples:
+A rule is made up of a url, comma, and lastly a file path. See the table below for examples:
 
-| Rule (URL , File Path)                                 | Requested URL                 | File Path That Is Used As Response |
-|--------------------------------------------------------|-------------------------------|------------------------------------|
-| http://example.com , src/index.html                    | http://example.com            | src/index.html                     |
-| http://example.com/* , src/\*                          | http://example.com/foo.js     | src/foo.js                         |
-| \*example.com/js/\*\* , someFolder/js/\*\*             | https://example.com/js/bar.js | someFolder/js/bar.js               |
-| http://example.com/*/**/foo.js , src/\*\*/\*/foo.js    | http://example.com/a/b/foo.js | src/b/a/foo.js                     |
-| \*cool\*js/\*\* , myDir/\*\*                           | http://wow.cool.com/js/a.js   | myDir/a.js                         |
-
-Table rows 3 and 5 show how you don't have to use all the star globs in the file path allowing you to throw away parts of a url.
-
-Table row 4 shows how you can reverse the order of the url path in your file path.
+| Rule (URL , File Path)                                           | Requested URL                 | File Path That Is Used As Response |
+|------------------------------------------------------------------|-------------------------------|------------------------------------|
+| http:\/\/example.com\/dir\/filename\.exe , some/evil/virus.exe   | Any .exe from example.com     | some/evil/virus.exe                |
+| http:\/\/example.com\/.*\.exe , some/evil/virus.exe              | Any .exe from example.com     | some/evil/virus.exe                |
+| http:\/\/.*\.exe , some/evil/virus.exe                           | Any .exe from anywhere        | some/evil/virus.exe                |
 
 # Other Info About mitmproxy
 
@@ -50,10 +44,6 @@ You might need to install some other dependencies if it fails (Read the error lo
 I needed to run:
 
     sudo apt-get install python-dev libxml2-dev libxslt-dev zlib1g-dev libffi-dev libssl-dev
-
-**mitmproxy for Windows:** One way I was able to use mitmproxy on windows was to install it using Ubuntu Server in a virtual machine. Virtual Box can forward ports from the guest VM so that you can connect to the proxy using that port. See the bottom of this page to see how to port forward on Virtual Box: https://github.com/CenturyLinkLabs/panamax-ui/wiki/How-To%3A-Port-Forwarding-on-VirtualBox
-
-You can also set up shared folders with Virtual Box (after you install guest additions) so you can access your host machine's files. Go to the virtual machine's settings and look for "Shared Folders"
 
 You may want to add the Certificate Authority cert files to your computers trusted CAs. The certs are usally in ~/.mitmproxy . Google on how to do this.
 
