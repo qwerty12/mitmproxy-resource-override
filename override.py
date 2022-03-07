@@ -7,18 +7,12 @@ http:\/\/example.com\/js/.* , src/js/file.ext
 Usage: mitmproxy -s "mitmResourceOverride.py [file1 [file2 [..]]]"
 (this script works best with --anticache)
 '''
-import optparse
-import os
 import re
-import sys
-from urllib.request import URLopener
-
-
 
 def getOverrideData():
 
 	overridesText = ""
-	with open("overrides.txt") as f:
+	with open("overrides.txt", mode="r", encoding="utf-8") as f:
 		overridesText += f.read() + "\n"
 
 	overridesText = overridesText.replace("\r\n", "\n")
@@ -28,16 +22,19 @@ def getOverrideData():
 
 	for line in lines:
 		if line.find(",") > -1:
-			urlData.append(list(map(lambda s: s.strip(), line.split(","))))
+			x = list(map(lambda s: s.strip(), line.split(",")))
+			x[0] = re.compile(x[0].strip())
+			urlData.append(x)
 
 	return urlData
 
+overrideData = getOverrideData()
 
 def tryToReadFile(filePath, urlData):
 	contents = ""
 	try:
-		fileHandle = URLopener().open(filePath)
-		contents = fileHandle.read()
+		with open(filePath, mode="rb") as fileHandle:
+			contents = fileHandle.read()
 	except IOError:
 		contents = "mitmProxy - Resource Override: Could not open " + filePath + \
 			" Came from rule: " + urlData[0] + " , " + urlData[1]
@@ -45,45 +42,34 @@ def tryToReadFile(filePath, urlData):
 	return contents
 
 def request(flow):
-	
-	overrideData = getOverrideData()
-
+	global overrideData
 	url = flow.request.pretty_url
 
-	urlMatches = False
 	for urlData in overrideData:
-		urlMatches = match(urlData[0], url)
-		if urlMatches:
-			break
-	if urlMatches:
-		flow.request.method = "HEAD"
-		#flow.request.host = "www.google.de"
-		#flow.request.path = "/"
-		print("Changed to HEAD") #don't download stuff first
-		
+		if urlData[0].match(url) is not None:
+			flow.request.method = "HEAD"
+			#flow.request.host = "www.google.de"
+			#flow.request.path = "/"
+			#print("Changed to HEAD") #don't download stuff first
+			return
+
 
 def response(flow):
-	overrideData = getOverrideData()
+	global overrideData
 
 	url = flow.request.pretty_url
 
 	newResponseContent = ""
-	urlMatches = False
 	
 	for urlData in overrideData:
-		urlMatches = match(urlData[0], url)
-		if urlMatches:
+		if urlData[0].match(url) != None:
 			filePath = urlData[1]
 			newResponseContent = tryToReadFile(filePath, urlData)
-			print("Matched " + filePath)
-			break
-	if urlMatches:
-		flow.response.status_code = 200
-		flow.response.reason = "OK"
-		#flow.response.headers["Location"] = ""
-		flow.response.content = newResponseContent
-		#print(flow.response)
-	
-def match(rule, url):
-	if re.match(rule, url) != None:
-		return True
+			#print("Matched " + filePath)
+			flow.response.status_code = 200
+			flow.response.reason = "OK"
+			#flow.response.headers["Location"] = ""
+			flow.response.content = newResponseContent
+			#print(flow.response)
+			return
+
